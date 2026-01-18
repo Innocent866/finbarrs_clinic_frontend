@@ -4,7 +4,7 @@ const ClinicVisit = require('../models/clinicVisitModel');
 // @route   POST /api/visits
 // @access  Private/Nurse
 const createVisit = async (req, res) => {
-    const { studentId, symptoms, diagnosis, treatment, drugs, outcome } = req.body;
+    const { studentId, symptoms, diagnosis, treatment, drugs, outcome, temperature, spo2, pulse, weight, followUpRequired, followUpDate, followUpNote } = req.body;
 
     // Could add validation to check if student exists here, but ref handles it.
     // If studentId is invalid, Mongoose will likely throw error or we check.
@@ -16,6 +16,13 @@ const createVisit = async (req, res) => {
         treatment,
         drugs,
         outcome,
+        temperature,
+        spo2,
+        pulse,
+        weight,
+        followUpRequired,
+        followUpDate,
+        followUpNote,
         attendedBy: req.user._id
     });
 
@@ -53,7 +60,8 @@ const getVisitById = async (req, res) => {
     const visit = await ClinicVisit.findById(req.params.id)
         .populate('studentId')
         .populate('attendedBy', 'fullName')
-        .populate('reviewedBy', 'fullName');
+        .populate('reviewedBy', 'fullName')
+        .populate('followUpReports.addedBy', 'fullName');
 
     if (visit) {
         res.json(visit);
@@ -98,4 +106,80 @@ const reviewVisit = async (req, res) => {
     }
 };
 
-module.exports = { createVisit, getVisits, getVisitById, markAllAsViewed, getUnreadCount, reviewVisit };
+// @desc    Add follow-up report
+// @route   PUT /api/visits/:id/follow-up-report
+// @access  Private/Nurse/Doctor
+const addFollowUpReport = async (req, res) => {
+    const { report } = req.body;
+    const visit = await ClinicVisit.findById(req.params.id);
+
+    if (visit) {
+        visit.followUpReports.push({
+            note: report,
+            addedBy: req.user._id
+        });
+        visit.isFollowUpCompleted = true;
+        
+        const updatedVisit = await visit.save();
+        res.json(updatedVisit);
+    } else {
+        res.status(404).json({ message: 'Visit not found' });
+    }
+};
+
+
+// @desc    Update clinical details (Doctor only)
+// @route   PUT /api/visits/:id/clinical-details
+// @access  Private/Doctor
+const updateClinicalDetails = async (req, res) => {
+    const { diagnosis, drugs } = req.body;
+    const visit = await ClinicVisit.findById(req.params.id);
+
+    if (visit) {
+        visit.diagnosis = diagnosis || visit.diagnosis;
+        visit.drugs = drugs || visit.drugs;
+        
+        const updatedVisit = await visit.save();
+        res.json(updatedVisit);
+    } else {
+        res.status(404).json({ message: 'Visit not found' });
+    }
+
+};
+
+// @desc    Update entire visit (Nurse only)
+// @route   PUT /api/visits/:id
+// @access  Private/Nurse
+const updateVisit = async (req, res) => {
+    const { 
+        symptoms, diagnosis, treatment, drugs, outcome, 
+        temperature, spo2, pulse, weight, 
+        followUpRequired, followUpDate, followUpNote 
+    } = req.body;
+
+    const visit = await ClinicVisit.findById(req.params.id);
+
+    if (visit) {
+        visit.symptoms = symptoms || visit.symptoms;
+        visit.diagnosis = diagnosis || visit.diagnosis;
+        visit.treatment = treatment || visit.treatment;
+        visit.drugs = drugs || visit.drugs;
+        visit.outcome = outcome || visit.outcome;
+        
+        visit.temperature = temperature !== undefined ? temperature : visit.temperature;
+        visit.spo2 = spo2 !== undefined ? spo2 : visit.spo2;
+        visit.pulse = pulse !== undefined ? pulse : visit.pulse;
+        visit.weight = weight !== undefined ? weight : visit.weight;
+
+        visit.followUpRequired = followUpRequired !== undefined ? followUpRequired : visit.followUpRequired;
+        if (followUpDate) visit.followUpDate = followUpDate;
+        if (followUpNote) visit.followUpNote = followUpNote;
+
+        const updatedVisit = await visit.save();
+        res.json(updatedVisit);
+    } else {
+        res.status(404).json({ message: 'Visit not found' });
+    }
+};
+
+module.exports = { createVisit, getVisits, getVisitById, markAllAsViewed, getUnreadCount, reviewVisit, addFollowUpReport, updateClinicalDetails, updateVisit };

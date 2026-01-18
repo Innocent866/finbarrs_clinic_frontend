@@ -11,6 +11,7 @@ import AdminNotifications from './pages/AdminNotifications';
 import NurseDashboard from './pages/NurseDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import ClinicVisitReview from './pages/ClinicVisitReview';
+import SingleVisit from './pages/SingleVisit';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = useAuth();
@@ -54,6 +55,11 @@ const AppRoutes = () => {
                 <Route path="visits/:id/review" element={
                     <ProtectedRoute allowedRoles={['DOCTOR', 'ADMIN', 'NURSE']}>
                          <ClinicVisitReview />
+                    </ProtectedRoute>
+                } />
+                <Route path="visits/:id" element={
+                    <ProtectedRoute allowedRoles={['DOCTOR', 'ADMIN', 'NURSE']}>
+                         <SingleVisit />
                     </ProtectedRoute>
                 } />
             </Route>

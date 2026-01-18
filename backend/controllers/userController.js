@@ -33,7 +33,7 @@ const authUser = async (req, res) => {
 // @route   POST /api/users
 // @access  Private/Admin
 const registerUser = async (req, res) => {
-    const { fullName, email, password, role } = req.body;
+    const { fullName, email, phone, password, role } = req.body;
 
     const userExists = await User.findOne({ email });
 
@@ -45,6 +45,7 @@ const registerUser = async (req, res) => {
     const user = await User.create({
         fullName,
         email,
+        phone,
         password,
         role: role || 'NURSE' 
     });
@@ -54,6 +55,7 @@ const registerUser = async (req, res) => {
             _id: user._id,
             fullName: user.fullName,
             email: user.email,
+            phone: user.phone,
             role: user.role
         });
     } else {
@@ -69,4 +71,47 @@ const getUsers = async (req, res) => {
     res.json(users);
 };
 
-module.exports = { authUser, registerUser, getUsers };
+// @desc    Update user
+// @route   PUT /api/users/:id
+// @access  Private/Admin
+const updateUser = async (req, res) => {
+    const user = await User.findById(req.params.id);
+
+    if (user) {
+        user.fullName = req.body.fullName || user.fullName;
+        user.email = req.body.email || user.email;
+        user.phone = req.body.phone || user.phone;
+        user.role = req.body.role || user.role;
+        
+        if (req.body.password) {
+            user.password = req.body.password;
+        }
+
+        const updatedUser = await user.save();
+
+        res.json({
+            _id: updatedUser._id,
+            fullName: updatedUser.fullName,
+            email: updatedUser.email,
+            role: updatedUser.role,
+        });
+    } else {
+        res.status(404).json({ message: 'User not found' });
+    }
+};
+
+// @desc    Delete user
+// @route   DELETE /api/users/:id
+// @access  Private/Admin
+const deleteUser = async (req, res) => {
+    const user = await User.findById(req.params.id);
+
+    if (user) {
+        await user.deleteOne();
+        res.json({ message: 'User removed' });
+    } else {
+        res.status(404).json({ message: 'User not found' });
+    }
+};
+
+module.exports = { authUser, registerUser, getUsers, updateUser, deleteUser };

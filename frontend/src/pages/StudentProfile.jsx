@@ -134,6 +134,7 @@ const StudentProfile = () => {
                         <tr>
                             <th className="p-5">Date & Time</th>
                             <th className="p-5">Diagnosis & Symptoms</th>
+                            <th className="p-5">Vitals</th>
                             <th className="p-5">Treatment Administered</th>
                             <th className="p-5">Action Taken</th>
                             <th className="p-5">Attended By</th>
@@ -154,6 +155,18 @@ const StudentProfile = () => {
                                     <p className="text-sm text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100 inline-block">
                                         "{visit.symptoms}"
                                     </p>
+                                </td>
+                                <td className="p-5">
+                                    {(visit.temperature || visit.spo2 || visit.pulse || visit.weight) ? (
+                                        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                                            {visit.temperature && <span className="text-slate-600 font-medium whitespace-nowrap">🌡️ {visit.temperature}°C</span>}
+                                            {visit.spo2 && <span className="text-slate-600 font-medium whitespace-nowrap">💧 {visit.spo2}%</span>}
+                                            {visit.pulse && <span className="text-slate-600 font-medium whitespace-nowrap">❤️ {visit.pulse} bpm</span>}
+                                            {visit.weight && <span className="text-slate-600 font-medium whitespace-nowrap">⚖️ {visit.weight} kg</span>}
+                                        </div>
+                                    ) : (
+                                        <span className="text-xs text-slate-400">N/A</span>
+                                    )}
                                 </td>
                                 <td className="p-5">
                                     <div className="text-slate-700">{visit.treatment}</div>
@@ -184,22 +197,28 @@ const StudentProfile = () => {
                                     </div>
                                 </td>
                                 <td className="p-5">
-                                    {visit.isReviewed ? (
+                                    <div className="flex flex-col gap-2">
                                         <Link 
-                                            to={`/visits/${visit._id}/review`}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 text-xs font-bold rounded-lg hover:bg-green-100 border border-green-200 transition"
+                                            to={`/visits/${visit._id}`}
+                                            className="inline-flex items-center gap-1.5 text-blue-600 text-xs font-bold hover:text-blue-800 transition"
                                         >
-                                            <Activity size={14} /> View Note
+                                            <FileText size={14} /> View Details
                                         </Link>
-                                    ) : (
-                                        <span className="text-xs text-slate-400 font-medium italic">Pending Review</span>
-                                    )}
+                                        
+                                        {visit.isReviewed ? (
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 text-xs font-bold rounded-lg border border-green-200">
+                                                <Activity size={14} /> Reviewed
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-slate-400 font-medium italic">Pending Review</span>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}
                         {visits.length === 0 && (
                             <tr>
-                                <td colSpan="5" className="p-16 text-center text-slate-400">
+                                <td colSpan="6" className="p-16 text-center text-slate-400">
                                     <FileText size={48} className="mx-auto mb-3 opacity-20" />
                                     <p>No medical history recorded for this student.</p>
                                 </td>

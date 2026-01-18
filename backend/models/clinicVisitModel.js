@@ -10,6 +10,10 @@ const clinicVisitSchema = mongoose.Schema({
     diagnosis: { type: String, required: true },
     treatment: { type: String, required: true },
     drugs: { type: String },
+    temperature: { type: Number },
+    spo2: { type: Number },
+    pulse: { type: Number },
+    weight: { type: Number },
     outcome: {
         type: String,
         required: true,
@@ -37,6 +41,25 @@ const clinicVisitSchema = mongoose.Schema({
     },
     reviewedAt: {
         type: Date
+    },
+    followUpRequired: {
+        type: Boolean,
+        default: false
+    },
+    followUpDate: {
+        type: Date
+    },
+    followUpNote: {
+        type: String
+    },
+    followUpReports: [{
+        note: { type: String, required: true },
+        addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        createdAt: { type: Date, default: Date.now }
+    }],
+    isFollowUpCompleted: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

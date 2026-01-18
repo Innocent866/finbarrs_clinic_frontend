@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Check, AlertCircle } from 'lucide-react';
 import api from '../api';
 
-const AddStudentModal = ({ onClose, onStudentAdded }) => {
+const AddStudentModal = ({ onClose, onStudentAdded, studentToEdit = null }) => {
     const [formData, setFormData] = useState({
         fullName: '',
         admissionNo: '',
@@ -17,6 +17,22 @@ const AddStudentModal = ({ onClose, onStudentAdded }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    useEffect(() => {
+        if (studentToEdit) {
+            setFormData({
+                fullName: studentToEdit.fullName || '',
+                admissionNo: studentToEdit.admissionNo || '',
+                class: studentToEdit.class || '',
+                studentType: studentToEdit.studentType || 'Day',
+                bloodGroup: studentToEdit.bloodGroup || '',
+                genotype: studentToEdit.genotype || '',
+                allergies: studentToEdit.allergies || 'None',
+                chronicCondition: studentToEdit.chronicCondition || 'None',
+                parentPhone: studentToEdit.parentPhone || ''
+            });
+        }
+    }, [studentToEdit]);
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -27,11 +43,15 @@ const AddStudentModal = ({ onClose, onStudentAdded }) => {
         setError(null);
 
         try {
-            await api.post('/students', formData);
+            if (studentToEdit) {
+                await api.put(`/students/${studentToEdit._id}`, formData);
+            } else {
+                await api.post('/students', formData);
+            }
             onStudentAdded();
             onClose();
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to add student');
+            setError(err.response?.data?.message || `Failed to ${studentToEdit ? 'update' : 'add'} student`);
         } finally {
             setLoading(false);
         }
@@ -41,7 +61,7 @@ const AddStudentModal = ({ onClose, onStudentAdded }) => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                    <h2 className="text-xl font-bold text-slate-800">Add New Student</h2>
+                    <h2 className="text-xl font-bold text-slate-800">{studentToEdit ? 'Edit Student' : 'Add New Student'}</h2>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500">
                         <X size={20} />
                     </button>
@@ -209,7 +229,7 @@ const AddStudentModal = ({ onClose, onStudentAdded }) => {
                             disabled={loading}
                             className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {loading ? 'Saving...' : <><Check size={20} /> Save Student</>}
+                            {loading ? 'Saving...' : <><Check size={20} /> {studentToEdit ? 'Update Student' : 'Save Student'}</>}
                         </button>
                     </div>
                 </form>

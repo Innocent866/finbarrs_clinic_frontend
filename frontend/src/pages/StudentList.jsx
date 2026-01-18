@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
-import { Search, Plus, Filter, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Filter, AlertTriangle, Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,25 +12,57 @@ const StudentList = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [studentToEdit, setStudentToEdit] = useState(null);
 
     useEffect(() => {
-        const fetchStudents = async () => {
-            try {
-                const { data } = await api.get('/students');
-                setStudents(data);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchStudents();
     }, []);
+
+    const fetchStudents = async () => {
+        try {
+            const { data } = await api.get('/students');
+            setStudents(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const filteredStudents = students.filter(student => 
         student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.admissionNo.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ).sort((a, b) => {
+        const classOrder = {
+            'JSS 1': 1, 'JSS 2': 2, 'JSS 3': 3,
+            'SSS 1': 4, 'SSS 2': 5, 'SSS 3': 6
+        };
+        const rankA = classOrder[a.class] || 99;
+        const rankB = classOrder[b.class] || 99;
+        
+        if (rankA !== rankB) {
+            return rankA - rankB;
+        }
+        
+        return a.fullName.localeCompare(b.fullName);
+    });
+
+    const handleEdit = (student) => {
+        setStudentToEdit(student);
+        setShowAddModal(true);
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this student record?')) {
+            try {
+                await api.delete(`/students/${id}`);
+                fetchStudents();
+            } catch (error) {
+                console.error("Failed to delete student", error);
+                alert('Failed to delete student');
+            }
+        }
+    };
 
     const StudentTypeBadge = ({ type }) => {
         const isBoarder = type === 'Boarder';
@@ -52,7 +84,10 @@ const StudentList = () => {
                 </div>
                 {user.role === 'ADMIN' && (
                     <button 
-                        onClick={() => setShowAddModal(true)}
+                        onClick={() => {
+                            setStudentToEdit(null);
+                            setShowAddModal(true);
+                        }}
                         className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-600/20 font-medium transition"
                     >
                         <Plus size={18} /> Add Student
@@ -108,7 +143,25 @@ const StudentList = () => {
                                         <span className="text-xs text-slate-400 font-medium px-2 py-1">No Alerts</span>
                                     )}
                                 </td>
-                                <td className="p-5 text-right space-x-2">
+                                <td className="p-5 text-right space-x-2 flex justify-end items-center">
+                                    {user.role === 'ADMIN' && (
+                                        <>
+                                            <button 
+                                                onClick={() => handleEdit(student)}
+                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                title="Edit"
+                                            >
+                                                <Pencil size={18} />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDelete(student._id)}
+                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </>
+                                    )}
                                     <Link 
                                         to={`/students/${student._id}`} 
                                         className="text-white bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-sm font-medium transition shadow-indigo-500/20 shadow-md"
@@ -143,15 +196,14 @@ const StudentList = () => {
 
             {showAddModal && (
                 <AddStudentModal 
-                    onClose={() => setShowAddModal(false)} 
+                    onClose={() => {
+                        setShowAddModal(false);
+                        setStudentToEdit(null);
+                    }}
                     onStudentAdded={() => {
-                        // Refresh list
-                        const fetchStudents = async () => {
-                            const { data } = await api.get('/students');
-                            setStudents(data);
-                        };
                         fetchStudents();
                     }}
+                    studentToEdit={studentToEdit}
                 />
             )}
         </div>

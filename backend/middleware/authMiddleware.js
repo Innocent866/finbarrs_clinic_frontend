@@ -39,4 +39,13 @@ const doctor = (req, res, next) => {
     }
 };
 
-module.exports = { protect, admin, doctor };
+// @access  Private/Nurse
+const nurse = (req, res, next) => {
+    if (req.user && req.user.role === 'NURSE') {
+        next();
+    } else {
+        res.status(401).json({ message: 'Not authorized as a nurse' });
+    }
+};
+
+module.exports = { protect, admin, doctor, nurse };

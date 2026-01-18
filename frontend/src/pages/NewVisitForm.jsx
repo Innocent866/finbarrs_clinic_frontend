@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api';
-import { ArrowLeft, Stethoscope, Clipboard, Pill, Activity, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Stethoscope, Clipboard, Pill, Activity, CheckCircle2, Calendar } from 'lucide-react';
 
 const NewVisitForm = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -15,6 +15,13 @@ const NewVisitForm = () => {
         diagnosis: '',
         treatment: '',
         drugs: '',
+        temperature: '',
+        spo2: '',
+        pulse: '',
+        weight: '',
+        followUpRequired: false,
+        followUpDate: '',
+        followUpNote: '',
         outcome: 'Returned to Class'
     });
     
@@ -278,6 +285,97 @@ const NewVisitForm = () => {
                                         onChange={(e) => setFormData({...formData, drugs: e.target.value})}
                                     />
                                 </div>
+                            </div>
+
+                            <div className="p-5 bg-slate-50 rounded-xl border border-slate-200">
+                                <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                                    <Activity size={18} className="text-blue-500" /> Vital Signs
+                                </h3>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-500 mb-1">Temperature (°C)</label>
+                                        <input 
+                                            type="number" 
+                                            step="0.1"
+                                            className="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700"
+                                            placeholder="36.5"
+                                            value={formData.temperature}
+                                            onChange={(e) => setFormData({...formData, temperature: e.target.value})}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-500 mb-1">SpO2 (%)</label>
+                                        <input 
+                                            type="number" 
+                                            className="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700"
+                                            placeholder="98"
+                                            value={formData.spo2}
+                                            onChange={(e) => setFormData({...formData, spo2: e.target.value})}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-500 mb-1">Pulse (bpm)</label>
+                                        <input 
+                                            type="number" 
+                                            className="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700"
+                                            placeholder="72"
+                                            value={formData.pulse}
+                                            onChange={(e) => setFormData({...formData, pulse: e.target.value})}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-500 mb-1">Weight (kg)</label>
+                                        <input 
+                                            type="number" 
+                                            step="0.1"
+                                            className="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700"
+                                            placeholder="65"
+                                            value={formData.weight}
+                                            onChange={(e) => setFormData({...formData, weight: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-5 bg-slate-50 rounded-xl border border-slate-200">
+                                <label className="flex items-center gap-3 cursor-pointer mb-4">
+                                    <input 
+                                        type="checkbox"
+                                        className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition"
+                                        checked={formData.followUpRequired}
+                                        onChange={(e) => setFormData({...formData, followUpRequired: e.target.checked})}
+                                    />
+                                    <span className="font-bold text-slate-700">Requires Follow-up Visit</span>
+                                </label>
+                                
+                                {formData.followUpRequired && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-500 mb-1">Follow-up Date</label>
+                                            <div className="relative">
+                                                <Calendar size={16} className="absolute left-3 top-3 text-slate-400" />
+                                                <input 
+                                                    type="date" 
+                                                    required={formData.followUpRequired}
+                                                    className="w-full pl-10 p-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700"
+                                                    value={formData.followUpDate}
+                                                    min={new Date().toISOString().split('T')[0]}
+                                                    onChange={(e) => setFormData({...formData, followUpDate: e.target.value})}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-500 mb-1">Note (Optional)</label>
+                                            <input 
+                                                type="text" 
+                                                className="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700"
+                                                placeholder="Reason for follow-up..."
+                                                value={formData.followUpNote}
+                                                onChange={(e) => setFormData({...formData, followUpNote: e.target.value})}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="pt-4 border-t border-slate-100 mt-4">

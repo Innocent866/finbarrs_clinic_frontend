@@ -138,6 +138,42 @@ const ClinicVisitReview = () => {
                             </div>
                         </div>
 
+
+
+                        {(visit.temperature || visit.spo2 || visit.pulse || visit.weight) && (
+                            <div>
+                                <label className="block text-slate-400 font-semibold mb-2 uppercase text-xs tracking-wider flex items-center gap-2">
+                                    <Activity size={14} /> Vital Signs
+                                </label>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    {visit.temperature && (
+                                        <div>
+                                            <span className="text-xs text-slate-500 block">Temp</span>
+                                            <span className="font-semibold text-slate-700">{visit.temperature}°C</span>
+                                        </div>
+                                    )}
+                                    {visit.spo2 && (
+                                        <div>
+                                            <span className="text-xs text-slate-500 block">SpO2</span>
+                                            <span className="font-semibold text-slate-700">{visit.spo2}%</span>
+                                        </div>
+                                    )}
+                                    {visit.pulse && (
+                                        <div>
+                                            <span className="text-xs text-slate-500 block">Pulse</span>
+                                            <span className="font-semibold text-slate-700">{visit.pulse} bpm</span>
+                                        </div>
+                                    )}
+                                    {visit.weight && (
+                                        <div>
+                                            <span className="text-xs text-slate-500 block">Weight</span>
+                                            <span className="font-semibold text-slate-700">{visit.weight} kg</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         <div>
                             <label className="block text-slate-400 font-semibold mb-1 uppercase text-xs tracking-wider flex items-center gap-2">
                                 <FileText size={14} /> Treatment
